@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Afinador y Transcriptor Canario</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="card">
+        <div class="flag-strip"></div>
+        
+        <div class="header">
+            <h2>Herramientas Canarias 🇮🇨</h2>
+            <div class="nav-tabs">
+                <button id="tab-afinador" class="tab-btn active" onclick="cambiarVista('afinador')">
+                    <span class="material-icons">music_note</span> AFINADOR
+                </button>
+                <button id="tab-transcriptor" class="tab-btn" onclick="cambiarVista('transcriptor')">
+                    <span class="material-icons">edit_note</span> TRANSCRIPTOR
+                </button>
+            </div>
+        </div>
+
+        <div id="vista-afinador">
+            <div class="toggle-container">
+                <button id="btn-timple" class="active" onclick="cambiarInstrumento('timple')">Timple</button>
+                <button id="btn-contra" onclick="cambiarInstrumento('contra')">Contra</button>
+                <button id="btn-guitarra" onclick="cambiarInstrumento('guitarra')">Guitarra</button>
+                <button id="btn-bandurria" onclick="cambiarInstrumento('bandurria')">Bandurria</button>
+                <button id="btn-laud" onclick="cambiarInstrumento('laud')">Laúd</button>
+            </div>
+
+            <div id="cuerdas-container" class="strings-bar"></div>
+
+            <div class="display-area">
+                <div class="note" id="note-name">--</div>
+                <div class="freq" id="frequency">Selecciona cuerda</div>
+                <div class="status" id="status">...</div>
+            </div>
+
+            <div class="gauge-wrapper">
+                <div class="gauge-bg"></div>
+                <div class="needle" id="needle"></div>
+                <div class="center-dot"></div>
+            </div>
+        </div>
+
+        <div id="vista-transcriptor" class="hidden">
+            <div class="transcriber-header">
+                <h3><span class="material-icons">queue_music</span> Transcriptor</h3>
+                <p>Detectando notas exactas para tablatura...</p>
+            </div>
+
+            <div class="file-upload-area">
+                <p>¿Tienes un MP3? Súbelo y extrae las notas:</p>
+                <input type="file" id="audio-file" accept="audio/*" onchange="cargarAudio(event)">
+            </div>
+
+            <div class="controls-rec">
+                <button id="btn-rec" onclick="toggleGrabacion()">
+                    <span class="material-icons">mic</span> GRABAR MICRO
+                </button>
+                <button id="btn-clear" onclick="limpiarNotas()">
+                    <span class="material-icons">delete_sweep</span>
+                </button>
+                <button id="btn-download" onclick="descargarTablatura()" title="Descargar Tablatura">
+                    <span class="material-icons">download</span>
+                </button>
+            </div>
+            
+            <div class="sheet-music" id="sheet-music">
+                <span class="placeholder">Graba o sube un audio para empezar...</span>
+            </div>
+        </div>
+
+        <button id="btn-start" onclick="iniciarAudio()">
+            <span class="material-icons">mic</span> ACTIVAR MICRO
+        </button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
