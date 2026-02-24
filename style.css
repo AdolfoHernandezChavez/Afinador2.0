@@ -55,26 +55,36 @@ body {
 /* --- NAVEGACIÓN (TABS) --- */
 .nav-tabs {
     display: flex;
-    justify-content: center;
-    gap: 10px;
+    justify-content: space-between;
+    gap: 4px; /* Reducimos el hueco entre botones */
     margin-bottom: 20px;
     border-bottom: 1px solid #444;
     padding-bottom: 15px;
+    width: 100%;
 }
 
 .tab-btn {
     background: transparent;
     border: none;
     color: #888;
-    font-size: 0.9rem;
+    font-size: 0.75rem; /* Letra un poco más pequeña para que quepa */
     font-weight: bold;
     cursor: pointer;
-    padding: 8px 15px;
+    padding: 8px 2px; /* Menos relleno a los lados */
     border-radius: 8px;
     display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    gap: 4px;
     transition: 0.3s;
+    flex: 1; /* REGLA MÁGICA: Esto hace que se repartan el espacio a partes iguales */
+    text-align: center;
+}
+
+/* Ajustamos el tamaño del icono para que se vea equilibrado con la letra nueva */
+.tab-btn .material-icons {
+    font-size: 1.1rem;
 }
 
 .tab-btn:hover {
@@ -407,3 +417,130 @@ body {
     background: #005b9f;
     box-shadow: 0 0 10px rgba(0, 114, 206, 0.5);
 }
+
+/* --- VISTA METRÓNOMO --- */
+.bpm-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.bpm-btn {
+    background: #333;
+    color: #fff;
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.bpm-btn:hover {
+    background: var(--ocean-blue);
+    transform: scale(1.1);
+}
+
+.bpm-btn:active {
+    transform: scale(0.95);
+}
+
+.bpm-value-container {
+    text-align: center;
+    min-width: 100px;
+}
+
+#bpm-value {
+    font-size: 4rem;
+    font-weight: 800;
+    color: var(--canary-yellow);
+    line-height: 1;
+    text-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
+}
+
+.bpm-label {
+    display: block;
+    color: #aaa;
+    font-size: 1rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+#bpm-slider {
+    width: 100%;
+    margin-bottom: 30px;
+    accent-color: var(--ocean-blue);
+    cursor: pointer;
+}
+
+/* Indicador Visual Canario */
+.visual-metronome {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.beat-circle {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: #222;
+    border: 4px solid #444;
+    transition: all 0.05s ease-out; /* Reacción súper rápida */
+}
+
+/* Esta clase se añade por JS en cada golpe */
+.beat-circle.tick {
+    background: var(--canary-yellow);
+    border-color: var(--ocean-blue);
+    box-shadow: 0 0 30px rgba(255, 204, 0, 0.8), inset 0 0 20px rgba(255,255,255,0.8);
+    transform: scale(1.15);
+}
+
+#btn-play-metronomo {
+    background: linear-gradient(135deg, var(--ocean-blue) 0%, #004d80 100%);
+    color: var(--white);
+    border: none;
+    width: 100%;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: 0.3s;
+    text-transform: uppercase;
+}
+
+#btn-play-metronomo:hover {
+    box-shadow: 0 5px 15px rgba(0, 114, 206, 0.5);
+}
+
+#btn-play-metronomo.playing {
+    background: #ff4d4d;
+    box-shadow: 0 5px 15px rgba(255, 77, 77, 0.4);
+}
+
+/* --- ETIQUETA BETA EN EL MENÚ --- */
+.beta-bubble {
+    position: relative;
+    background: var(--canary-yellow); /* Color amarillo canario */
+    color: #000;
+    font-size: 0.5rem; /* Letra muy pequeñita */
+    font-weight: 900;
+    padding: 3px 6px;
+    border-radius: 10px; /* Bordes redondeados tipo pastilla */
+    margin-left: 6px; /* Separación del texto "TRANSCRIPTOR" */
+    top: -1px; /* Pequeño ajuste vertical para alinearlo */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    /* Ya no hay animación */
+}
+

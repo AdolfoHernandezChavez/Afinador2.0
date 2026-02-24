@@ -19,8 +19,12 @@
                 <button id="tab-afinador" class="tab-btn active" onclick="cambiarVista('afinador')">
                     <span class="material-icons">music_note</span> AFINADOR
                 </button>
+                <button id="tab-metronomo" class="tab-btn" onclick="cambiarVista('metronomo')">
+                    <span class="material-icons">timer</span> METRÓNOMO
+                </button>
                 <button id="tab-transcriptor" class="tab-btn" onclick="cambiarVista('transcriptor')">
                     <span class="material-icons">edit_note</span> TRANSCRIPTOR
+                    <span class="beta-bubble">BETA</span>
                 </button>
             </div>
         </div>
@@ -75,6 +79,34 @@
             <div class="sheet-music" id="sheet-music">
                 <span class="placeholder">Graba o sube un audio para empezar...</span>
             </div>
+        </div>
+        
+        <div id="vista-metronomo" class="hidden">
+            <div class="transcriber-header">
+                <h3><span class="material-icons">timer</span> Metrónomo Canario</h3>
+                <p>Marca el compás de tus isas, folías y malagueñas</p>
+            </div>
+            
+            <div class="bpm-display">
+                <button class="bpm-btn" onclick="cambiarBPM(-5)">-5</button>
+                <button class="bpm-btn" onclick="cambiarBPM(-1)">-1</button>
+                <div class="bpm-value-container">
+                    <span id="bpm-value">120</span>
+                    <span class="bpm-label">BPM</span>
+                </div>
+                <button class="bpm-btn" onclick="cambiarBPM(1)">+1</button>
+                <button class="bpm-btn" onclick="cambiarBPM(5)">+5</button>
+            </div>
+
+            <input type="range" id="bpm-slider" min="40" max="240" value="120" oninput="actualizarSlider(this.value)">
+
+            <div class="visual-metronome">
+                <div class="beat-circle" id="visual-beat"></div>
+            </div>
+
+            <button id="btn-play-metronomo" onclick="toggleMetronomo()">
+                <span class="material-icons">play_arrow</span> INICIAR RITMO
+            </button>
         </div>
 
         <button id="btn-start" onclick="iniciarAudio()">

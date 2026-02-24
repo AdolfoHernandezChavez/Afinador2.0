@@ -57,25 +57,30 @@ const NOTAS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 window.onload = () => { cambiarInstrumento('timple'); };
 
 function cambiarVista(vista) {
-    const vistaAfinador = document.getElementById('vista-afinador');
-    const vistaTranscriptor = document.getElementById('vista-transcriptor');
-    const tabAfinador = document.getElementById('tab-afinador');
-    const tabTranscriptor = document.getElementById('tab-transcriptor');
+    const vistas = ['afinador', 'metronomo', 'transcriptor'];
+    
+    // Ocultar todas las vistas y desactivar pestañas
+    vistas.forEach(v => {
+        document.getElementById('vista-' + v).classList.add('hidden');
+        document.getElementById('tab-' + v).classList.remove('active');
+    });
 
-    if (vista === 'afinador') {
-        vistaAfinador.classList.remove('hidden');
-        vistaTranscriptor.classList.add('hidden');
-        tabAfinador.classList.add('active');
-        tabTranscriptor.classList.remove('active');
-        if (isRecording) toggleGrabacion();
-    } else if (vista === 'transcriptor') {
-        vistaTranscriptor.classList.remove('hidden');
-        vistaAfinador.classList.add('hidden');
-        tabTranscriptor.classList.add('active');
-        tabAfinador.classList.remove('active');
+    // Mostrar la vista seleccionada
+    document.getElementById('vista-' + vista).classList.remove('hidden');
+    document.getElementById('tab-' + vista).classList.add('active');
+
+    // --- NUEVO: Ocultar o mostrar el botón de "ACTIVAR MICRO" ---
+    const btnStart = document.getElementById('btn-start');
+    if (vista === 'metronomo') {
+        btnStart.classList.add('hidden'); // Lo escondemos
+    } else {
+        btnStart.classList.remove('hidden'); // Lo mostramos de nuevo
     }
-}
 
+    // Apagar cosas si cambiamos de pestaña (para no grabar o que suene de fondo)
+    if (vista !== 'transcriptor' && typeof isRecording !== 'undefined' && isRecording) toggleGrabacion();
+    if (vista !== 'metronomo' && typeof isMetronomePlaying !== 'undefined' && isMetronomePlaying) detenerMetronomo(false);
+}
 function cambiarInstrumento(inst) {
     document.querySelectorAll('.toggle-container button').forEach(b => b.className = '');
     document.getElementById('btn-' + inst).className = 'active';
@@ -450,4 +455,115 @@ function autoCorrelate(buf, sampleRate) {
     if (a) T0 = T0 - b/(2*a);
 
     return sampleRate/T0;
+}
+
+// ==========================================
+// --- NUEVO: LÓGICA DEL METRÓNOMO ---
+// ==========================================
+
+let bpm = 120;
+let isMetronomePlaying = false;
+let metronomeIntervalId = null;
+
+function cambiarBPM(delta) {
+    let nuevoBPM = bpm + delta;
+    if (nuevoBPM < 40) nuevoBPM = 40;
+    if (nuevoBPM > 240) nuevoBPM = 240;
+    actualizarUIBPM(nuevoBPM);
+}
+
+function actualizarSlider(valor) {
+    actualizarUIBPM(parseInt(valor));
+}
+
+function actualizarUIBPM(nuevoBPM) {
+    bpm = nuevoBPM;
+    document.getElementById('bpm-value').innerText = bpm;
+    document.getElementById('bpm-slider').value = bpm;
+    
+    // Si está sonando, reiniciamos el bucle para que adopte el nuevo tempo al vuelo
+    if (isMetronomePlaying) {
+        detenerMetronomo(true); // El 'true' es para que no cambie el botón visualmente
+        iniciarMetronomo();
+    }
+}
+
+function toggleMetronomo() {
+    if (isMetronomePlaying) {
+        detenerMetronomo(false);
+    } else {
+        iniciarMetronomo();
+    }
+}
+
+function iniciarMetronomo() {
+    // Nos aseguramos de que el contexto de audio existe (necesario si no han usado el afinador antes)
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+
+    isMetronomePlaying = true;
+    const btn = document.getElementById('btn-play-metronomo');
+    btn.innerHTML = "<span class='material-icons'>stop</span> DETENER";
+    btn.classList.add('playing');
+
+    // Calculamos los milisegundos entre cada golpe
+    const intervaloMs = (60 / bpm) * 1000;
+    
+    hacerTick(); // Hacemos el primer golpe inmediatamente
+    metronomeIntervalId = setInterval(hacerTick, intervaloMs);
+}
+
+function detenerMetronomo(esCambioAlVuelo) {
+    isMetronomePlaying = false;
+    clearInterval(metronomeIntervalId);
+    
+    if (!esCambioAlVuelo) {
+        const btn = document.getElementById('btn-play-metronomo');
+        btn.innerHTML = "<span class='material-icons'>play_arrow</span> INICIAR RITMO";
+        btn.classList.remove('playing');
+    }
+}
+
+function hacerTick() {
+    // 1. Reproducimos el sonido "Clack!"
+    tocarBeep();
+    
+    // 2. Encendemos el parpadeo visual
+    const circle = document.getElementById('visual-beat');
+    
+    // Forzamos un reinicio de la animación por si el BPM es muy rápido
+    circle.classList.remove('tick');
+    void circle.offsetWidth; // Truco de CSS para reiniciar la animación
+    
+    circle.classList.add('tick');
+    
+    // Apagamos la luz rápido para que parezca un destello
+    setTimeout(() => {
+        circle.classList.remove('tick');
+    }, 100); 
+}
+
+// Crea un sonido de percusión sintético sin necesitar archivos MP3 externos
+function tocarBeep() {
+    if (!audioContext) return;
+    
+    const osc = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    osc.type = 'sine'; // Tono limpio
+    osc.frequency.setValueAtTime(800, audioContext.currentTime); // Frecuencia del "beep"
+    
+    // Hacemos que el sonido sea un golpe seco (empieza fuerte y cae a 0 rápido)
+    gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+    
+    osc.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    osc.start();
+    osc.stop(audioContext.currentTime + 0.05);
 }
