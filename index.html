@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Afinador y Transcriptor Canario</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Afinador y Transcriptor Canario</title>
+  <meta name="description" content="Afinador y transcriptor canario para timple, contra, guitarra, bandurria y laúd. Afinación visual y generación de tablaturas inteligentes.">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <main class="app-main">
+    <article class="card">
+      <div class="flag-strip" aria-hidden="true"></div>
 
-    <div class="card">
-        <div class="flag-strip"></div>
-        
-        <div class="header">
-            <h2>Herramientas Canarias 🇮🇨</h2>
-            <div class="nav-tabs">
+      <header class="header">
+        <h1 class="app-title">Herramientas Canarias 🇮🇨</h1>
+
+          <div class="nav-tabs">
                 <button id="tab-afinador" class="tab-btn active" onclick="cambiarVista('afinador')">
                     <span class="material-icons">music_note</span> AFINADOR
                 </button>
@@ -26,94 +28,175 @@
                     <span class="material-icons">edit_note</span> TRANSCRIPTOR
                     <span class="beta-bubble">BETA</span>
                 </button>
-            </div>
+          </div>
+      </header>
+
+      <section id="vista-afinador" role="tabpanel" aria-labelledby="tab-afinador">
+        <h2 class="visually-hidden">Afinador</h2>
+        <div class="toggle-container" aria-label="Seleccionar instrumento">
+          <button id="btn-timple" class="toggle-btn active" type="button">Timple</button>
+          <button id="btn-contra" class="toggle-btn" type="button">Contra</button>
+          <button id="btn-guitarra" class="toggle-btn" type="button">Guitarra</button>
+          <button id="btn-bandurria" class="toggle-btn" type="button">Bandurria</button>
+          <button id="btn-laud" class="toggle-btn" type="button">Laúd</button>
+        </div>
+        
+        <div class="temperament-selector">
+            <label for="temperamento-select">Temperamento:</label>
+            <select id="temperamento-select" onchange="cambiarTemperamento()">
+                <option value="estandar">Estándar (A=440 Hz)</option>
+                <option value="orquestal">Orquestal (A=442 Hz)</option>
+                <option value="tradicional">Tradicional (A=435 Hz)</option>
+            </select>
+        </div>
+        
+        <div id="cuerdas-container" class="strings-bar" aria-label="Cuerdas del instrumento"></div>
+
+        <section class="display-area" aria-live="polite">
+          <p class="note" id="note-name">--</p>
+          <p class="freq" id="frequency">Selecciona cuerda</p>
+          <p class="status" id="status">...</p>
+        </section>
+
+        <div class="gauge-wrapper" aria-hidden="true">
+          <div class="gauge-bg"></div>
+          <div class="needle" id="needle"></div>
+          <div class="center-dot"></div>
         </div>
 
-        <div id="vista-afinador">
-            <div class="toggle-container">
-                <button id="btn-timple" class="active" onclick="cambiarInstrumento('timple')">Timple</button>
-                <button id="btn-contra" onclick="cambiarInstrumento('contra')">Contra</button>
-                <button id="btn-guitarra" onclick="cambiarInstrumento('guitarra')">Guitarra</button>
-                <button id="btn-bandurria" onclick="cambiarInstrumento('bandurria')">Bandurria</button>
-                <button id="btn-laud" onclick="cambiarInstrumento('laud')">Laúd</button>
-            </div>
+        <section class="help-text">
+          <h3>Cómo usar el afinador</h3>
+          <ul>
+            <li>Activa el micro con el botón “Activar micro”.</li>
+            <li>Elige instrumento y cuerda.</li>
+            <li>Toca la cuerda y ajusta hasta que el indicador se ponga en amarillo.</li>
+          </ul>
+        </section>
+      </section>
 
-            <div id="cuerdas-container" class="strings-bar"></div>
-
-            <div class="display-area">
-                <div class="note" id="note-name">--</div>
-                <div class="freq" id="frequency">Selecciona cuerda</div>
-                <div class="status" id="status">...</div>
+      <section id="vista-metronomo" class="hidden" role="tabpanel" aria-labelledby="tab-metronomo">
+        <h2 class="visually-hidden">Metrónomo</h2>
+        <header class="transcriber-header">
+            <h3><span class="material-icons" aria-hidden="true">timer</span> Metrónomo Canario</h3>
+            <p>Marca el compás de tus isas, folías, malagueñas ...</p>
+        </header>
+        
+        <div class="bpm-display">
+            <button class="bpm-btn" onclick="cambiarBPM(-5)" aria-label="Disminuir 5 BPM">-5</button>
+            <button class="bpm-btn" onclick="cambiarBPM(-1)" aria-label="Disminuir 1 BPM">-1</button>
+            <div class="bpm-value-container" aria-live="polite">
+                <span id="bpm-value">120</span>
+                <span class="bpm-label">BPM</span>
             </div>
-
-            <div class="gauge-wrapper">
-                <div class="gauge-bg"></div>
-                <div class="needle" id="needle"></div>
-                <div class="center-dot"></div>
-            </div>
+            <button class="bpm-btn" onclick="cambiarBPM(1)" aria-label="Aumentar 1 BPM">+1</button>
+            <button class="bpm-btn" onclick="cambiarBPM(5)" aria-label="Aumentar 5 BPM">+5</button>
         </div>
 
-        <div id="vista-transcriptor" class="hidden">
-            <div class="transcriber-header">
-                <h3><span class="material-icons">queue_music</span> Transcriptor</h3>
-                <p>Detectando notas exactas para tablatura...</p>
+        <input type="range" id="bpm-slider" min="40" max="240" value="120" oninput="actualizarSlider(this.value)" aria-label="Ajustar velocidad del metrónomo">
+
+        <div class="visual-metronome" aria-hidden="true">
+            <div class="beat-circle" id="visual-beat"></div>
+        </div>
+
+        <button id="btn-play-metronomo" onclick="toggleMetronomo()" type="button">
+            <span class="material-icons" aria-hidden="true">play_arrow</span> INICIAR RITMO
+        </button>
+      </section>
+      
+      <section
+        id="vista-transcriptor"
+        class="hidden"
+        role="tabpanel"
+        aria-labelledby="tab-transcriptor"
+      >
+        <h2 class="visually-hidden">Transcriptor</h2>
+
+        <div id="pantalla-bloqueo" class="bloqueo-container">
+            <span class="material-icons lock-icon" aria-hidden="true">lock</span>
+            <h3>Zona Beta Privada</h3>
+            <p>Esta función está en desarrollo. Introduce la clave de acceso.</p>
+            <div class="password-box">
+                <input type="password" id="input-pass" placeholder="Contraseña..." onkeypress="verificarEnter(event)" aria-label="Contraseña de acceso">
+                <button type="button" onclick="comprobarPassword()">ENTRAR</button>
             </div>
+            <p id="msg-error" class="error-text hidden" aria-live="assertive">❌ Contraseña incorrecta</p>
+        </div>
+
+        <div id="contenido-transcriptor" class="hidden">
+            <header class="transcriber-header">
+              <h3>
+                <span class="material-icons" aria-hidden="true">queue_music</span>
+                Transcriptor
+              </h3>
+              <p>Detectando notas exactas para tablatura.</p>
+            </header>
 
             <div class="file-upload-area">
-                <p>¿Tienes un MP3? Súbelo y extrae las notas:</p>
-                <input type="file" id="audio-file" accept="audio/*" onchange="cargarAudio(event)">
+              <p>Sube un MP3/WAV y extrae las notas:</p>
+              <input
+                type="file"
+                id="audio-file"
+                accept="audio/*"
+                aria-label="Seleccionar archivo de audio"
+                onchange="cargarAudio(event)"
+              >
             </div>
 
             <div class="controls-rec">
-                <button id="btn-rec" onclick="toggleGrabacion()">
-                    <span class="material-icons">mic</span> GRABAR MICRO
-                </button>
-                <button id="btn-clear" onclick="limpiarNotas()">
-                    <span class="material-icons">delete_sweep</span>
-                </button>
-                <button id="btn-download" onclick="descargarTablatura()" title="Descargar Tablatura">
-                    <span class="material-icons">download</span>
-                </button>
+              <button
+                id="btn-rec"
+                class="btn"
+                type="button"
+                onclick="toggleGrabacion()"
+              >
+                <span class="material-icons" aria-hidden="true">mic</span>
+                GRABAR MICRO
+              </button>
+
+              <button
+                id="btn-clear"
+                class="btn-icon"
+                type="button"
+                aria-label="Limpiar notas"
+                onclick="limpiarNotas()"
+              >
+                <span class="material-icons" aria-hidden="true">delete_sweep</span>
+              </button>
+
+              <button
+                id="btn-download"
+                class="btn-icon"
+                type="button"
+                aria-label="Descargar tablatura en TXT"
+                title="Descargar Tablatura"
+                onclick="descargarTablatura()"
+              >
+                <span class="material-icons" aria-hidden="true">download</span>
+              </button>
             </div>
-            
-            <div class="sheet-music" id="sheet-music">
-                <span class="placeholder">Graba o sube un audio para empezar...</span>
+
+            <div class="sheet-music" id="sheet-music" aria-live="polite">
+              <span class="placeholder">Graba o sube un audio para empezar...</span>
             </div>
+
+            <section class="help-text">
+              <h3>Cómo usar el transcriptor</h3>
+              <ul>
+                <li>Pulsa “Grabar micro” o sube un archivo de audio.</li>
+                <li>Toca tu melodía o reproduce la grabación.</li>
+                <li>Descarga la tablatura en formato TXT cuando termines.</li>
+              </ul>
+            </section>
         </div>
-        
-        <div id="vista-metronomo" class="hidden">
-            <div class="transcriber-header">
-                <h3><span class="material-icons">timer</span> Metrónomo Canario</h3>
-                <p>Marca el compás de tus isas, folías y malagueñas</p>
-            </div>
-            
-            <div class="bpm-display">
-                <button class="bpm-btn" onclick="cambiarBPM(-5)">-5</button>
-                <button class="bpm-btn" onclick="cambiarBPM(-1)">-1</button>
-                <div class="bpm-value-container">
-                    <span id="bpm-value">120</span>
-                    <span class="bpm-label">BPM</span>
-                </div>
-                <button class="bpm-btn" onclick="cambiarBPM(1)">+1</button>
-                <button class="bpm-btn" onclick="cambiarBPM(5)">+5</button>
-            </div>
+      </section>
 
-            <input type="range" id="bpm-slider" min="40" max="240" value="120" oninput="actualizarSlider(this.value)">
+      <button id="btn-start" class="btn btn-wide" type="button" aria-pressed="false">
+        <span class="material-icons" aria-hidden="true">mic</span>
+        ACTIVAR MICRO
+      </button>
+    </article>
+  </main>
 
-            <div class="visual-metronome">
-                <div class="beat-circle" id="visual-beat"></div>
-            </div>
-
-            <button id="btn-play-metronomo" onclick="toggleMetronomo()">
-                <span class="material-icons">play_arrow</span> INICIAR RITMO
-            </button>
-        </div>
-
-        <button id="btn-start" onclick="iniciarAudio()">
-            <span class="material-icons">mic</span> ACTIVAR MICRO
-        </button>
-    </div>
-
-    <script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
