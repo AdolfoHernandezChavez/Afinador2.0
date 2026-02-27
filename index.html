@@ -187,6 +187,10 @@
                 <li>Descarga la tablatura en formato TXT cuando termines.</li>
               </ul>
             </section>
+            <button id="btn-juego" class="btn btn-wide" onclick="abrirJuego()">
+                <span class="material-icons" aria-hidden="true">sports_esports</span>
+                MODO JUEGO (PRÓXIMAMENTE)
+            </button>
         </div>
       </section>
 
@@ -197,6 +201,108 @@
     </article>
   </main>
 
-  <script src="script.js"></script>
+<div id="pantalla-juego" class="hidden">
+      <div id="lienzo-juego">
+          
+          <div id="menu-principal-juego" class="game-menu-container">
+              <h2 class="game-title">
+                  <span class="material-icons" aria-hidden="true">sports_esports</span> 
+                  Zona de Entrenamiento
+              </h2>
+              
+              <div class="game-section">
+                  <h3>1. Elige tu instrumento</h3>
+                  <div class="toggle-container" id="game-instrument-selector">
+                      <button class="toggle-btn active" type="button" onclick="seleccionarInstrumentoJuego(this, 'timple')">Timple</button>
+                      <button class="toggle-btn" type="button" onclick="seleccionarInstrumentoJuego(this, 'contra')">Contra</button>
+                      <button class="toggle-btn" type="button" onclick="seleccionarInstrumentoJuego(this, 'guitarra')">Guitarra</button>
+                      <button class="toggle-btn" type="button" onclick="seleccionarInstrumentoJuego(this, 'bandurria')">Bandurria</button>
+                      <button class="toggle-btn" type="button" onclick="seleccionarInstrumentoJuego(this, 'laud')">Laúd</button>
+                  </div>
+              </div>
+
+              <div class="game-section">
+                  <h3>2. Elige tu desafío</h3>
+                  <div class="game-modes-grid">
+                      <div class="game-card">
+                          <span class="material-icons game-icon">music_video</span>
+                          <h4>Caza-Tablaturas</h4>
+                          <p>Aprende el mástil. Memoriza la posición de las notas en la tablatura.</p>
+                          <button class="btn-play-game" onclick="iniciarJuegoTablatura()">JUGAR TABLATURA</button>
+                      </div>
+                      <div class="game-card">
+                          <span class="material-icons game-icon">graphic_eq</span>
+                          <h4>Maestro de Armónicos</h4>
+                          <p>Afina tu técnica. Encuentra y haz sonar los armónicos exactos.</p>
+                          <button class="btn-play-game" onclick="iniciarJuegoArmonicos()">JUGAR ARMÓNICOS</button>
+                      </div>
+                  </div>
+              </div>
+          </div> <div id="menu-dificultad-juego" class="game-menu-container hidden">
+              <h2 class="game-title" id="dif-titulo">
+                  <span class="material-icons">speed</span> Elige tu Nivel
+              </h2>
+              <p style="color: #aaa; margin-bottom: 25px; font-size: 1.1rem;">Selecciona la dificultad para empezar el reto.</p>
+
+              <div class="game-modes-grid">
+                  <div class="game-card" style="border-color: #4CAF50;">
+                      <span class="material-icons game-icon" style="color: #4CAF50;">sentiment_satisfied_alt</span>
+                      <h4>Fácil</h4>
+                      <p id="dif-desc-facil">Descripción fácil...</p>
+                      <button class="btn-play-game btn-facil" onclick="arrancarJuegoFinal('facil')">NIVEL FÁCIL</button>
+                  </div>
+                  
+                  <div class="game-card" style="border-color: #FF9800;">
+                      <span class="material-icons game-icon" style="color: #FF9800;">sentiment_neutral</span>
+                      <h4>Medio</h4>
+                      <p id="dif-desc-medio">Descripción media...</p>
+                      <button class="btn-play-game btn-medio" onclick="arrancarJuegoFinal('medio')">NIVEL MEDIO</button>
+                  </div>
+
+                  <div class="game-card" style="border-color: #F44336;">
+                      <span class="material-icons game-icon" style="color: #F44336;">whatshot</span>
+                      <h4>Difícil</h4>
+                      <p id="dif-desc-dificil">Descripción difícil...</p>
+                      <button class="btn-play-game btn-dificil" onclick="arrancarJuegoFinal('dificil')">NIVEL DIFÍCIL</button>
+                  </div>
+              </div>
+
+              <button class="btn-volver-secundario" onclick="volverMenuModos()">
+                  <span class="material-icons">undo</span> Cambiar de juego
+              </button>
+          </div> <div id="interfaz-juego-activa" class="game-menu-container hidden" style="max-width: 900px; width: 100%;">
+              
+              <div class="game-header-active">
+                  <span id="info-ronda" style="color: #aaa; font-weight: bold;">Timple - Nivel Fácil</span>
+                  <div id="puntuacion-juego" style="font-weight: bold;">Aciertos: <span id="puntos-texto" style="color: var(--canary-yellow);">0</span></div>
+              </div>
+
+              <div class="target-note-display">
+                  <p>Toca esta nota:</p>
+                  <h1 id="nota-pantalla">C4 <span class="nota-espanol">(Do4)</span></h1>
+              </div>
+
+              <div class="game-controls-active">
+                  <button id="btn-escuchar-juego" class="btn-play-game" style="width: auto; padding: 12px 30px; background: var(--ocean-blue); color: white;">
+                      <span class="material-icons">mic</span> ACTIVAR MICRO PARA JUGAR
+                  </button>
+                  <button class="btn-volver-secundario" onclick="mostrarAyudaFretboard()" style="margin-top: 0; color: #ffcc00; border-color: #ffcc00;">
+                      <span class="material-icons">help_outline</span> VER AYUDA
+                  </button>
+              </div>
+
+              <div id="mensaje-acierto" class="hidden" style="color: #4CAF50; font-size: 1.5rem; font-weight: bold; margin-top: 20px;">
+                  ¡CORRECTO! 🎵
+              </div>
+
+              <div id="contenedor-mastil" class="hidden">
+                  <div class="fretboard" id="fretboard">
+                      </div>
+              </div>
+
+          </div> </div> <button class="btn-volver" onclick="cerrarJuego()">
+          <span class="material-icons">arrow_back</span> VOLVER
+      </button>
+  </div> <script src="script.js"></script>
 </body>
 </html>

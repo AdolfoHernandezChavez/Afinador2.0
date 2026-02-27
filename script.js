@@ -863,3 +863,183 @@ function verificarEnter(event) {
         comprobarPassword();
     }
 }
+
+// ==========================================
+// --- LÓGICA DEL MODO JUEGO ---
+// ==========================================
+
+function abrirJuego() {
+    // Mostramos la pantalla negra
+    document.getElementById('pantalla-juego').classList.remove('hidden');
+    
+    // Opcional: Si estaban grabando audio o sonando el metrónomo, lo apagamos para que no moleste al juego
+    if (typeof isRecording !== 'undefined' && isRecording) toggleGrabacion();
+    if (typeof isMetronomePlaying !== 'undefined' && isMetronomePlaying) detenerMetronomo(false);
+}
+
+function cerrarJuego() {
+    // Ocultamos la pantalla negra y volvemos a ver la web normal
+    document.getElementById('pantalla-juego').classList.add('hidden');
+}
+
+// ==========================================
+// --- LÓGICA DEL MENÚ DE JUEGOS ---
+// ==========================================
+
+let instrumentoJuegoActual = 'timple';
+let modoJuegoSeleccionado = ''; // Guardará 'tablatura' o 'armonicos'
+
+function seleccionarInstrumentoJuego(botonClicado, instrumento) {
+    instrumentoJuegoActual = instrumento;
+    const contenedor = document.getElementById('game-instrument-selector');
+    const botones = contenedor.querySelectorAll('.toggle-btn');
+    botones.forEach(btn => btn.classList.remove('active'));
+    botonClicado.classList.add('active');
+}
+
+function iniciarJuegoTablatura() {
+    modoJuegoSeleccionado = 'tablatura';
+    prepararPantallaDificultad();
+}
+
+function iniciarJuegoArmonicos() {
+    modoJuegoSeleccionado = 'armonicos';
+    prepararPantallaDificultad();
+}
+
+// Esta función rellena los textos según el juego que hayas elegido y cambia la vista
+function prepararPantallaDificultad() {
+    const titulo = document.getElementById('dif-titulo');
+    const descFacil = document.getElementById('dif-desc-facil');
+    const descMedio = document.getElementById('dif-desc-medio');
+    const descDificil = document.getElementById('dif-desc-dificil');
+
+    if (modoJuegoSeleccionado === 'tablatura') {
+        titulo.innerHTML = '<span class="material-icons">music_video</span> Nivel: Caza-Tablaturas';
+        descFacil.innerText = "Trastes del 0 al 5. Ideal para empezar a memorizar las primeras posiciones.";
+        descMedio.innerText = "Trastes del 0 al 7. Ampliamos el rango de notas en el diapasón.";
+        descDificil.innerText = "Trastes del 0 al 12+. ¡Domina el mástil completo a lo largo de toda la tablatura!";
+    } else if (modoJuegoSeleccionado === 'armonicos') {
+        titulo.innerHTML = '<span class="material-icons">graphic_eq</span> Nivel: Armónicos';
+        descFacil.innerText = "Armónicos naturales básicos. Encuentra los puntos clave más fáciles.";
+        descMedio.innerText = "Añadimos armónicos con cejilla y posiciones intermedias en el mástil.";
+        descDificil.innerText = "¡Modo Dios! Todas las posiciones armónicas posibles que se le pueden sacar al instrumento.";
+    }
+
+    // Ocultar menú principal y mostrar dificultades
+    document.getElementById('menu-principal-juego').classList.add('hidden');
+    document.getElementById('menu-dificultad-juego').classList.remove('hidden');
+}
+
+function volverMenuModos() {
+    // Si se arrepienten y quieren volver a elegir Tablatura o Armónicos
+    document.getElementById('menu-dificultad-juego').classList.add('hidden');
+    document.getElementById('menu-principal-juego').classList.remove('hidden');
+}
+
+let nivelJuegoActual = '';
+
+// Diccionario para traducir notas al español
+const notasLatinas = { 'C':'Do', 'C#':'Do#', 'D':'Re', 'D#':'Re#', 'E':'Mi', 'F':'Fa', 'F#':'Fa#', 'G':'Sol', 'G#':'Sol#', 'A':'La', 'A#':'La#', 'B':'Si' };
+
+// Cuerdas de cada instrumento (de 1ª a última) para dibujar la ayuda
+const afinacionesFretboard = {
+    timple: ['D', 'A', 'E', 'C', 'G'],
+    contra: ['G', 'D', 'A', 'F', 'C'],
+    guitarra: ['E', 'B', 'G', 'D', 'A', 'E'],
+    bandurria: ['A', 'E', 'B', 'F#', 'C#', 'G#'],
+    laud: ['A', 'E', 'B', 'F#', 'C#', 'G#']
+};
+
+// --- VARIABLE DE PRUEBA: Luego la haremos aleatoria ---
+// Cuerda índice 1 (es la 2ª cuerda), traste 3. En el timple eso es un Do5.
+let notaObjetivoActual = { nombre: 'C5', notaBase: 'C', octava: '5', cuerdaIndex: 1, traste: 3 }; 
+
+
+function arrancarJuegoFinal(nivel) {
+    nivelJuegoActual = nivel;
+    
+    // Ocultar menú de dificultad, mostrar el juego
+    document.getElementById('menu-dificultad-juego').classList.add('hidden');
+    document.getElementById('interfaz-juego-activa').classList.remove('hidden');
+    
+    // Configurar cabecera
+    document.getElementById('info-ronda').innerText = `${instrumentoJuegoActual.toUpperCase()} - ${nivel.toUpperCase()}`;
+    
+    // Configurar la nota en pantalla grande
+    const espanol = notasLatinas[notaObjetivoActual.notaBase];
+    document.getElementById('nota-pantalla').innerHTML = `${notaObjetivoActual.nombre} <span class="nota-espanol">(${espanol}${notaObjetivoActual.octava})</span>`;
+    
+    // Asegurarse de que la ayuda está cerrada al empezar
+    document.getElementById('contenedor-mastil').classList.add('hidden');
+}
+
+
+function mostrarAyudaFretboard() {
+    const contenedor = document.getElementById('contenedor-mastil');
+    const fretboard = document.getElementById('fretboard');
+    
+    // Si ya está abierta, la cerramos
+    if (!contenedor.classList.contains('hidden')) {
+        contenedor.classList.add('hidden');
+        return;
+    }
+    
+    fretboard.innerHTML = ''; // Limpiar dibujo anterior
+    
+    // Decidir cuántos trastes dibujar según el nivel
+    let numTrastes = 5;
+    if(nivelJuegoActual === 'medio') numTrastes = 7;
+    if(nivelJuegoActual === 'dificil') numTrastes = 12;
+
+    // --- NUEVO: DIBUJAR FILA DE NÚMEROS DE TRASTE ---
+    const filaNumeros = document.createElement('div');
+    filaNumeros.className = 'fret-numbers-row';
+    
+    // Hueco vacío para que alinee con las etiquetas "1ª", "2ª"...
+    const espaciador = document.createElement('div');
+    espaciador.className = 'fret-number-spacer';
+    filaNumeros.appendChild(espaciador);
+
+    // Bucle para poner los números del 0 al que toque
+    for(let traste = 0; traste <= numTrastes; traste++) {
+        const celdaNum = document.createElement('div');
+        celdaNum.className = 'fret-number-cell';
+        celdaNum.innerText = traste; // Escribe el número (0, 1, 2...)
+        filaNumeros.appendChild(celdaNum);
+    }
+    fretboard.appendChild(filaNumeros);
+    // -------------------------------------------------
+
+    const cuerdas = afinacionesFretboard[instrumentoJuegoActual];
+    
+    // Bucle para crear cada cuerda
+    cuerdas.forEach((notaAlAire, indexCuerda) => {
+        const filaCuerda = document.createElement('div');
+        filaCuerda.className = 'string-row';
+        
+        // Etiqueta (ej: "1ª")
+        const nombreCuerda = document.createElement('div');
+        nombreCuerda.className = 'string-name';
+        nombreCuerda.innerText = `${indexCuerda + 1}ª`;
+        filaCuerda.appendChild(nombreCuerda);
+        
+        // Bucle para crear los cuadritos de los trastes
+        for(let traste = 0; traste <= numTrastes; traste++) {
+            const celdaTraste = document.createElement('div');
+            celdaTraste.className = 'fret-cell';
+            
+            // Si coincide la cuerda y el traste con la nota objetivo... ¡Ponemos el punto!
+            if (indexCuerda === notaObjetivoActual.cuerdaIndex && traste === notaObjetivoActual.traste) {
+                const punto = document.createElement('div');
+                punto.className = 'punto-rojo';
+                celdaTraste.appendChild(punto);
+            }
+            
+            filaCuerda.appendChild(celdaTraste);
+        }
+        fretboard.appendChild(filaCuerda);
+    });
+    
+    contenedor.classList.remove('hidden');
+}
