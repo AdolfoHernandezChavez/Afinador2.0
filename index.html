@@ -147,7 +147,6 @@
                 id="btn-rec"
                 class="btn"
                 type="button"
-                onclick="toggleGrabacion()"
               >
                 <span class="material-icons" aria-hidden="true">mic</span>
                 GRABAR MICRO
@@ -231,10 +230,10 @@
                           <button class="btn-play-game" onclick="iniciarJuegoTablatura()">JUGAR TABLATURA</button>
                       </div>
                       <div class="game-card">
-                          <span class="material-icons game-icon">graphic_eq</span>
-                          <h4>Maestro de Armónicos</h4>
-                          <p>Afina tu técnica. Encuentra y haz sonar los armónicos exactos.</p>
-                          <button class="btn-play-game" onclick="iniciarJuegoArmonicos()">JUGAR ARMÓNICOS</button>
+                          <span class="material-icons game-icon">library_music</span>
+                          <h4>Maestro de Acordes</h4>
+                          <p>Aprende a rasguear. Coloca los dedos y haz sonar el acorde perfecto.</p>
+                          <button class="btn-play-game" onclick="iniciarJuegoAcordes()">JUGAR ACORDES</button>
                       </div>
                   </div>
               </div>
@@ -278,16 +277,23 @@
               </div>
 
               <div class="target-note-display">
-                  <p>Toca esta nota:</p>
+                  <p id="titulo-modo-juego">Toca esta nota:</p>
                   <h1 id="nota-pantalla">C4 <span class="nota-espanol">(Do4)</span></h1>
+                  
+                  <div class="live-indicator">
+                      Micro escuchando: <span id="nota-escuchada">--</span>
+                  </div>
               </div>
 
               <div class="game-controls-active">
-                  <button id="btn-escuchar-juego" class="btn-play-game" style="width: auto; padding: 12px 30px; background: var(--ocean-blue); color: white;">
+                  <button id="btn-escuchar-juego" class="btn-play-game" style="width: auto; padding: 12px 30px; background: var(--ocean-blue); color: white;" onclick="activarMicroJuego()">
                       <span class="material-icons">mic</span> ACTIVAR MICRO PARA JUGAR
                   </button>
                   <button class="btn-volver-secundario" onclick="mostrarAyudaFretboard()" style="margin-top: 0; color: #ffcc00; border-color: #ffcc00;">
                       <span class="material-icons">help_outline</span> VER AYUDA
+                  </button>
+                  <button class="btn-volver-secundario" onclick="terminarJuegoActual()" style="margin-top: 0; color: #F44336; border-color: #F44336;">
+                      <span class="material-icons">stop</span> SALIR
                   </button>
               </div>
 
@@ -303,6 +309,10 @@
           </div> </div> <button class="btn-volver" onclick="cerrarJuego()">
           <span class="material-icons">arrow_back</span> VOLVER
       </button>
-  </div> <script src="script.js"></script>
+  </div> 
+  
+  <script src="datos.js"></script>
+  <script src="script.js"></script>
+
 </body>
 </html>
