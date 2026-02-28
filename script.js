@@ -902,8 +902,8 @@ function iniciarJuegoTablatura() {
     prepararPantallaDificultad();
 }
 
-function iniciarJuegoArmonicos() {
-    modoJuegoSeleccionado = 'armonicos';
+function iniciarJuegoAcordes() {
+    modoJuegoSeleccionado = 'acordes';
     prepararPantallaDificultad();
 }
 
@@ -919,14 +919,13 @@ function prepararPantallaDificultad() {
         descFacil.innerText = "Trastes del 0 al 5. Ideal para empezar a memorizar las primeras posiciones.";
         descMedio.innerText = "Trastes del 0 al 7. Ampliamos el rango de notas en el diapasón.";
         descDificil.innerText = "Trastes del 0 al 12+. ¡Domina el mástil completo a lo largo de toda la tablatura!";
-    } else if (modoJuegoSeleccionado === 'armonicos') {
-        titulo.innerHTML = '<span class="material-icons">graphic_eq</span> Nivel: Armónicos';
-        descFacil.innerText = "Armónicos naturales básicos. Encuentra los puntos clave más fáciles.";
-        descMedio.innerText = "Añadimos armónicos con cejilla y posiciones intermedias en el mástil.";
-        descDificil.innerText = "¡Modo Dios! Todas las posiciones armónicas posibles que se le pueden sacar al instrumento.";
+    } else if (modoJuegoSeleccionado === 'acordes') { // <-- CAMBIADO A ACORDES
+        titulo.innerHTML = '<span class="material-icons">library_music</span> Nivel: Acordes';
+        descFacil.innerText = "Acordes Mayores básicos (Do, Re, Mi, Fa, Sol, La).";
+        descMedio.innerText = "Añadimos los acordes Menores (Dom, Rem, Mim...).";
+        descDificil.innerText = "¡Todos los acordes! Incluyendo sostenidos, bemoles y séptimas.";
     }
 
-    // Ocultar menú principal y mostrar dificultades
     document.getElementById('menu-principal-juego').classList.add('hidden');
     document.getElementById('menu-dificultad-juego').classList.remove('hidden');
 }
@@ -959,21 +958,28 @@ let notaObjetivoActual = { nombre: 'C5', notaBase: 'C', octava: '5', cuerdaIndex
 function arrancarJuegoFinal(nivel) {
     nivelJuegoActual = nivel;
     
-    // Ocultar menú de dificultad, mostrar el juego
+    // Ocultamos la dificultad y mostramos la pantalla de jugar
     document.getElementById('menu-dificultad-juego').classList.add('hidden');
     document.getElementById('interfaz-juego-activa').classList.remove('hidden');
     
-    // Configurar cabecera
+    // Ponemos el texto de arriba (Ej: TIMPLE - FÁCIL)
     document.getElementById('info-ronda').innerText = `${instrumentoJuegoActual.toUpperCase()} - ${nivel.toUpperCase()}`;
     
-    // Configurar la nota en pantalla grande
-    const espanol = notasLatinas[notaObjetivoActual.notaBase];
-    document.getElementById('nota-pantalla').innerHTML = `${notaObjetivoActual.nombre} <span class="nota-espanol">(${espanol}${notaObjetivoActual.octava})</span>`;
-    
-    // Asegurarse de que la ayuda está cerrada al empezar
-    document.getElementById('contenedor-mastil').classList.add('hidden');
-}
+    // --- LÓGICA DINÁMICA SEGÚN EL MODO DE JUEGO ---
+    const tituloPantalla = document.querySelector('.target-note-display p');
 
+    if (modoJuegoSeleccionado === 'tablatura') {
+        tituloPantalla.innerText = "Toca esta nota:";
+    } else if (modoJuegoSeleccionado === 'acordes') {
+        tituloPantalla.innerText = "Toca este acorde:";
+    }
+
+    // Asegurarnos de que la ayuda está cerrada al empezar
+    document.getElementById('contenedor-mastil').classList.add('hidden');
+
+    // ¡La magia! Generamos la primera nota o acorde de forma aleatoria
+    generarNuevaMeta();
+}
 
 function mostrarAyudaFretboard() {
     const contenedor = document.getElementById('contenedor-mastil');
@@ -987,50 +993,67 @@ function mostrarAyudaFretboard() {
     
     fretboard.innerHTML = ''; // Limpiar dibujo anterior
     
-    // Decidir cuántos trastes dibujar según el nivel
     let numTrastes = 5;
     if(nivelJuegoActual === 'medio') numTrastes = 7;
     if(nivelJuegoActual === 'dificil') numTrastes = 12;
 
-    // --- NUEVO: DIBUJAR FILA DE NÚMEROS DE TRASTE ---
+    // --- DIBUJAR FILA DE NÚMEROS DE TRASTE ---
     const filaNumeros = document.createElement('div');
     filaNumeros.className = 'fret-numbers-row';
-    
-    // Hueco vacío para que alinee con las etiquetas "1ª", "2ª"...
     const espaciador = document.createElement('div');
     espaciador.className = 'fret-number-spacer';
     filaNumeros.appendChild(espaciador);
 
-    // Bucle para poner los números del 0 al que toque
     for(let traste = 0; traste <= numTrastes; traste++) {
         const celdaNum = document.createElement('div');
         celdaNum.className = 'fret-number-cell';
-        celdaNum.innerText = traste; // Escribe el número (0, 1, 2...)
+        celdaNum.innerText = traste; 
         filaNumeros.appendChild(celdaNum);
     }
     fretboard.appendChild(filaNumeros);
-    // -------------------------------------------------
 
     const cuerdas = afinacionesFretboard[instrumentoJuegoActual];
     
-    // Bucle para crear cada cuerda
+    // --- NUEVO: ¿QUÉ PUNTOS VAMOS A DIBUJAR? ---
+    let puntosADibujar = [];
+
+    if (modoJuegoSeleccionado === 'tablatura') {
+        // En tablatura solo dibujamos un punto
+        puntosADibujar.push({ 
+            cuerdaIndex: notaObjetivoActual.cuerdaIndex, 
+            traste: notaObjetivoActual.traste 
+        });
+    } else if (modoJuegoSeleccionado === 'acordes') {
+        // En acordes, buscamos la postura completa en el diccionario
+        const posturasInstrumento = posturasAcordesVisuales[instrumentoJuegoActual];
+        
+        if (posturasInstrumento && posturasInstrumento[notaObjetivoActual.nombre]) {
+            puntosADibujar = posturasInstrumento[notaObjetivoActual.nombre];
+        } else {
+            // Si el acorde aún no está registrado en el diccionario, avisamos
+            alert(`Aún no has añadido la postura de ${notaObjetivoActual.nombre} para ${instrumentoJuegoActual} en el código.`);
+            return; 
+        }
+    }
+
+    // --- DIBUJAR CUERDAS Y PUNTOS ---
     cuerdas.forEach((notaAlAire, indexCuerda) => {
         const filaCuerda = document.createElement('div');
         filaCuerda.className = 'string-row';
         
-        // Etiqueta (ej: "1ª")
         const nombreCuerda = document.createElement('div');
         nombreCuerda.className = 'string-name';
         nombreCuerda.innerText = `${indexCuerda + 1}ª`;
         filaCuerda.appendChild(nombreCuerda);
         
-        // Bucle para crear los cuadritos de los trastes
         for(let traste = 0; traste <= numTrastes; traste++) {
             const celdaTraste = document.createElement('div');
             celdaTraste.className = 'fret-cell';
             
-            // Si coincide la cuerda y el traste con la nota objetivo... ¡Ponemos el punto!
-            if (indexCuerda === notaObjetivoActual.cuerdaIndex && traste === notaObjetivoActual.traste) {
+            // Comprobamos si en esta celda va algún dedo de la postura
+            const debeTenerPunto = puntosADibujar.some(punto => punto.cuerdaIndex === indexCuerda && punto.traste === traste);
+            
+            if (debeTenerPunto) {
                 const punto = document.createElement('div');
                 punto.className = 'punto-rojo';
                 celdaTraste.appendChild(punto);
@@ -1042,4 +1065,364 @@ function mostrarAyudaFretboard() {
     });
     
     contenedor.classList.remove('hidden');
+}
+
+function terminarJuegoActual() {
+    // 1. PARAR EL MOTOR DEL JUEGO
+    microJuegoActivo = false;
+    
+    // 2. Si el micrófono físico está grabando, lo apagamos
+    if (typeof isRecording !== 'undefined' && isRecording) {
+        toggleGrabacion(); 
+    }
+    
+    // 3. Restauramos el botón del micro a su estado original (azul)
+    const btn = document.getElementById('btn-escuchar-juego');
+    btn.innerHTML = '<span class="material-icons">mic</span> ACTIVAR MICRO PARA JUGAR';
+    btn.style.background = 'var(--ocean-blue)';
+    
+    // 4. Ocultamos el mástil de ayuda por si estaba abierto
+    document.getElementById('contenedor-mastil').classList.add('hidden');
+    
+    // 5. Ocultamos la pantalla del juego activo
+    document.getElementById('interfaz-juego-activa').classList.add('hidden');
+    
+    // 6. Mostramos de nuevo el menú de dificultad
+    document.getElementById('menu-dificultad-juego').classList.remove('hidden');
+    
+    // 7. Reseteamos los marcadores para la próxima partida
+    puntosJuego = 0;
+    document.getElementById('puntos-texto').innerText = "0";
+    document.getElementById('nota-escuchada').innerText = "--";
+}
+
+// ==========================================
+// --- DICCIONARIO Y DETECCIÓN DE ACORDES ---
+// ==========================================
+
+// Diccionario de acordes (Notas exactas que forman cada acorde)
+const diccionarioAcordes = [
+    // MAYORES
+    { nombre: "C", notas: ["C", "E", "G"] },
+    { nombre: "D", notas: ["D", "F#", "A"] },
+    { nombre: "E", notas: ["E", "G#", "B"] },
+    { nombre: "F", notas: ["F", "A", "C"] },
+    { nombre: "G", notas: ["G", "B", "D"] },
+    { nombre: "A", notas: ["A", "C#", "E"] },
+    { nombre: "B", notas: ["B", "D#", "F#"] },
+    
+    // MENORES
+    { nombre: "Cm", notas: ["C", "D#", "G"] },
+    { nombre: "Dm", notas: ["D", "F", "A"] },
+    { nombre: "Em", notas: ["E", "G", "B"] },
+    { nombre: "Fm", notas: ["F", "G#", "C"] },
+    { nombre: "Gm", notas: ["G", "A#", "D"] },
+    { nombre: "Am", notas: ["A", "C", "E"] },
+    { nombre: "Bm", notas: ["B", "D", "F#"] }
+];
+
+// ==========================================
+// --- DICCIONARIO DE POSTURAS VISUALES ---
+// ==========================================
+// cuerdaIndex: 0 es la 1ª cuerda (la más fina), 1 es la 2ª cuerda, etc.
+
+const posturasAcordesVisuales = {
+    guitarra: {
+        "C": [ {cuerdaIndex: 1, traste: 1}, {cuerdaIndex: 3, traste: 2}, {cuerdaIndex: 4, traste: 3} ], // Do Mayor
+        "D": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 1, traste: 3}, {cuerdaIndex: 2, traste: 2} ], // Re Mayor
+        "E": [ {cuerdaIndex: 2, traste: 1}, {cuerdaIndex: 3, traste: 2}, {cuerdaIndex: 4, traste: 2} ], // Mi Mayor
+        "G": [ {cuerdaIndex: 0, traste: 3}, {cuerdaIndex: 4, traste: 2}, {cuerdaIndex: 5, traste: 3} ]  // Sol Mayor
+        // Añade aquí el resto de la guitarra (F, A, B, Cm, Dm...)
+    },
+    timple: {
+        "C": [ {cuerdaIndex: 2, traste: 1} ], // Do Mayor en Timple (depende de tu afinación)
+        "D": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 1, traste: 2}, {cuerdaIndex: 2, traste: 2} ], 
+        "G": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 1, traste: 3}, {cuerdaIndex: 2, traste: 2} ]
+        // Añade aquí el resto del timple...
+    },
+    contra: {
+        // Rellena con las posturas del contra...
+    },
+    bandurria: {
+        // Rellena con las posturas de la bandurria...
+    },
+    laud: {
+        // Rellena con las posturas del laúd...
+    }
+};
+
+let candidatoActual = "--";
+let fotogramasEstables = 0;
+const UMBRAL_ESTABILIDAD = 15; // Número de frames que debe mantenerse el acorde para darlo por bueno
+
+function detectarAcordeJuego() {
+    // Si el juego ha terminado o cerramos la ventana, paramos el bucle
+    if (document.getElementById('interfaz-juego-activa').classList.contains('hidden') || !analyser) return;
+
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Float32Array(bufferLength);
+    analyser.getFloatFrequencyData(dataArray);
+
+    let picos = [];
+    // Reducción de ruido de fondo (tu lógica, que es excelente)
+    for (let i = 0; i < bufferLength; i++) {
+        if (dataArray[i] > -40) { 
+            if (i > 0 && i < bufferLength - 1) {
+                if (dataArray[i] > dataArray[i - 1] && dataArray[i] > dataArray[i + 1]) {
+                    const freq = i * audioContext.sampleRate / analyser.fftSize;
+                    if (freq > 80 && freq < 1000) picos.push({ freq: freq, volumen: dataArray[i] });
+                }
+            }
+        }
+    }
+
+    picos.sort((a, b) => b.volumen - a.volumen);
+    let notasDetectadas = new Set();
+    
+    // Convertimos los 5 picos más fuertes a nombres de notas sin octava (C, D#, etc.)
+    for (let i = 0; i < Math.min(5, picos.length); i++) {
+        const noteNum = 12 * (Math.log(picos[i].freq / 440) / Math.log(2)) + 69;
+        const index = Math.round(noteNum) % 12;
+        if (index >= 0) notasDetectadas.add(NOTAS[index]); // Usamos tu array global NOTAS
+    }
+
+    const arrayNotas = Array.from(notasDetectadas);
+    let acordeEncontrado = "--";
+
+    // Si detectamos al menos 2 o 3 notas distintas, buscamos en el diccionario
+    if (arrayNotas.length >= 2) {
+        for (let acorde of diccionarioAcordes) {
+            // Comprueba si todas las notas fundamentales del acorde están sonando
+            const coincide = acorde.notas.every(nota => arrayNotas.includes(nota));
+            if (coincide) { 
+                acordeEncontrado = acorde.nombre; 
+                break; 
+            }
+        }
+    }
+
+    // --- ESTABILIZACIÓN ---
+    if (acordeEncontrado === candidatoActual && acordeEncontrado !== "--") {
+        fotogramasEstables++;
+    } else {
+        candidatoActual = acordeEncontrado;
+        fotogramasEstables = 0;
+    }
+
+    // Si el acorde se mantiene constante y coincide con el objetivo del juego... ¡ACIERTO!
+    if (fotogramasEstables >= UMBRAL_ESTABILIDAD && modoJuegoSeleccionado === 'acordes') {
+        if (candidatoActual === notaObjetivoActual.nombre) {
+            aciertoJuego(); // Llamaremos a una función para dar puntos y pasar de nivel
+            fotogramasEstables = 0; // Reseteamos para evitar bucles de aciertos
+        }
+    }
+
+    requestAnimationFrame(detectarAcordeJuego);
+}
+
+// ==========================================
+// --- MOTOR DEL JUEGO (MICRO Y ACIERTOS) ---
+// ==========================================
+
+let microJuegoActivo = false;
+let puntosJuego = 0;
+let enTransicionAcierto = false;
+
+// Base de datos rápida para generar notas aleatorias con su octava real
+const cuerdasConOctava = {
+    timple: ['D5', 'A4', 'E4', 'C5', 'G4'],
+    contra: ['G4', 'D4', 'A3', 'F4', 'C4'],
+    guitarra: ['E4', 'B3', 'G3', 'D3', 'A2', 'E2'],
+    bandurria: ['A4', 'E4', 'B3', 'F#3', 'C#3', 'G#2'],
+    laud: ['A4', 'E4', 'B3', 'F#3', 'C#3', 'G#2']
+};
+
+async function activarMicroJuego() {
+    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioContext.state === 'suspended') await audioContext.resume();
+    
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const source = audioContext.createMediaStreamSource(stream);
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+        source.connect(analyser);
+        
+        microJuegoActivo = true;
+        const btn = document.getElementById('btn-escuchar-juego');
+        btn.innerHTML = '<span class="material-icons">mic_off</span> MICRO ACTIVADO';
+        btn.style.background = '#4CAF50';
+
+        // Lanzar el escuchador correspondiente
+        if (modoJuegoSeleccionado === 'tablatura') detectarNotaJuego();
+        else if (modoJuegoSeleccionado === 'acordes') detectarAcordeJuego(); // Tu función de antes
+        
+    } catch (err) {
+        alert("Error al acceder al micrófono: " + err);
+    }
+}
+
+// Bucle que detecta una sola nota (Para Caza-Tablaturas)
+function detectarNotaJuego() {
+    if (!microJuegoActivo || enTransicionAcierto || document.getElementById('interfaz-juego-activa').classList.contains('hidden')) return;
+
+    const buffer = new Float32Array(analyser.fftSize);
+    analyser.getFloatTimeDomainData(buffer);
+    const ac = autoCorrelate(buffer, audioContext.sampleRate); // Usa tu propia función
+    
+    const visorNota = document.getElementById('nota-escuchada');
+
+    if (ac !== -1) {
+        const notaTocada = getNoteAndOctave(ac); // Tu función
+        visorNota.innerText = notaTocada;
+
+        if (notaTocada === notaObjetivoActual.nombre) {
+            fotogramasEstables++;
+            if (fotogramasEstables >= 10) { // Si la mantienes medio segundo, cuenta
+                aciertoJuego();
+                return; 
+            }
+        } else {
+            fotogramasEstables = 0;
+        }
+    } else {
+        visorNota.innerText = "--";
+        fotogramasEstables = 0;
+    }
+
+    requestAnimationFrame(detectarNotaJuego);
+}
+
+// Modificamos un poco tu función de Acordes para el texto en vivo
+function detectarAcordeJuego() {
+    if (!microJuegoActivo || enTransicionAcierto || document.getElementById('interfaz-juego-activa').classList.contains('hidden')) return;
+
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Float32Array(bufferLength);
+    analyser.getFloatFrequencyData(dataArray);
+
+    let picos = [];
+    for (let i = 0; i < bufferLength; i++) {
+        if (dataArray[i] > -40) { 
+            if (i > 0 && i < bufferLength - 1) {
+                if (dataArray[i] > dataArray[i - 1] && dataArray[i] > dataArray[i + 1]) {
+                    const freq = i * audioContext.sampleRate / analyser.fftSize;
+                    if (freq > 80 && freq < 1000) picos.push({ freq: freq, volumen: dataArray[i] });
+                }
+            }
+        }
+    }
+
+    picos.sort((a, b) => b.volumen - a.volumen);
+    let notasDetectadas = new Set();
+    const NOTAS_ARRAY = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    
+    for (let i = 0; i < Math.min(5, picos.length); i++) {
+        const noteNum = 12 * (Math.log(picos[i].freq / 440) / Math.log(2)) + 69;
+        const index = Math.round(noteNum) % 12;
+        if (index >= 0) notasDetectadas.add(NOTAS_ARRAY[index]); 
+    }
+
+    const arrayNotas = Array.from(notasDetectadas);
+    let acordeEncontrado = "--";
+
+    if (arrayNotas.length >= 2) {
+        for (let acorde of diccionarioAcordes) {
+            const coincide = acorde.notas.every(nota => arrayNotas.includes(nota));
+            if (coincide) { acordeEncontrado = acorde.nombre; break; }
+        }
+    }
+
+    // Actualizar el visor en vivo
+    document.getElementById('nota-escuchada').innerText = acordeEncontrado;
+
+    if (acordeEncontrado === candidatoActual && acordeEncontrado !== "--") {
+        fotogramasEstables++;
+    } else {
+        candidatoActual = acordeEncontrado;
+        fotogramasEstables = 0;
+    }
+
+    if (fotogramasEstables >= UMBRAL_ESTABILIDAD && acordeEncontrado === notaObjetivoActual.nombre) {
+        aciertoJuego();
+        return;
+    }
+
+    requestAnimationFrame(detectarAcordeJuego);
+}
+
+function aciertoJuego() {
+    enTransicionAcierto = true;
+    puntosJuego++;
+    document.getElementById('puntos-texto').innerText = puntosJuego;
+
+    const pantallaNota = document.getElementById('nota-pantalla');
+    pantallaNota.classList.add('iluminar-acierto');
+    document.getElementById('mensaje-acierto').classList.remove('hidden');
+    document.getElementById('contenedor-mastil').classList.add('hidden');
+
+    // Esperamos 1.5 segundos disfrutando del éxito, y sacamos otra nota
+    setTimeout(() => {
+        pantallaNota.classList.remove('iluminar-acierto');
+        document.getElementById('mensaje-acierto').classList.add('hidden');
+        
+        generarNuevaMeta();
+        enTransicionAcierto = false;
+        
+        // Volvemos a encender la escucha
+        if (modoJuegoSeleccionado === 'tablatura') detectarNotaJuego();
+        else if (modoJuegoSeleccionado === 'acordes') detectarAcordeJuego();
+    }, 1500);
+}
+
+// Función matemática para sumar trastes
+function sumarTrastesANota(notaConOctava, semitonos) {
+    const NOTAS_ARRAY = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    let base = notaConOctava.slice(0, -1);
+    if (base.length === 0) return { nombre: notaConOctava, base: notaConOctava, octava: 4 }; // Fallback
+    const octava = parseInt(notaConOctava.slice(-1));
+    let index = NOTAS_ARRAY.indexOf(base);
+    
+    let notaAbsoluta = octava * 12 + index + semitonos;
+    let nuevaOctava = Math.floor(notaAbsoluta / 12);
+    let nuevoIndex = notaAbsoluta % 12;
+    
+    return { nombre: NOTAS_ARRAY[nuevoIndex] + nuevaOctava, base: NOTAS_ARRAY[nuevoIndex], octava: nuevaOctava };
+}
+
+function generarNuevaMeta() {
+    if (modoJuegoSeleccionado === 'tablatura') {
+        let maxTraste = 5;
+        if(nivelJuegoActual === 'medio') maxTraste = 7;
+        if(nivelJuegoActual === 'dificil') maxTraste = 12;
+
+        const cuerdas = cuerdasConOctava[instrumentoJuegoActual];
+        const indexCuerda = Math.floor(Math.random() * cuerdas.length);
+        const traste = Math.floor(Math.random() * (maxTraste + 1));
+        
+        const notaAlAire = cuerdas[indexCuerda];
+        const notaCalculada = sumarTrastesANota(notaAlAire, traste);
+
+        notaObjetivoActual = { 
+            nombre: notaCalculada.nombre, 
+            notaBase: notaCalculada.base, 
+            octava: notaCalculada.octava, 
+            cuerdaIndex: indexCuerda, 
+            traste: traste 
+        };
+
+        const espanol = notasLatinas[notaObjetivoActual.notaBase] || notaObjetivoActual.notaBase;
+        document.getElementById('nota-pantalla').innerHTML = `${notaObjetivoActual.nombre} <span class="nota-espanol">(${espanol}${notaObjetivoActual.octava})</span>`;
+
+    } else if (modoJuegoSeleccionado === 'acordes') {
+        let acordesFiltrados = diccionarioAcordes;
+        if (nivelJuegoActual === 'facil') {
+            acordesFiltrados = diccionarioAcordes.filter(a => !a.nombre.includes('m')); // Solo Mayores
+        }
+
+        const acordeAleatorio = acordesFiltrados[Math.floor(Math.random() * acordesFiltrados.length)];
+        notaObjetivoActual = { nombre: acordeAleatorio.nombre }; 
+        
+        document.getElementById('nota-pantalla').innerHTML = `<span style="font-size: 1.5em; color: var(--canary-yellow);">${notaObjetivoActual.nombre}</span>`;
+    }
 }
