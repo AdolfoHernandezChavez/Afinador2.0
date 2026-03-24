@@ -1,5 +1,5 @@
 const datosTimple = [ { num: '1ª', nota: 'D5', freq: 587.33 }, { num: '2ª', nota: 'A4', freq: 440.0 }, { num: '3ª', nota: 'E4', freq: 329.63 }, { num: '4ª', nota: 'C5', freq: 523.25 }, { num: '5ª', nota: 'G4', freq: 392.0 } ];
-const datosContra = [ { num: '1ª', nota: 'G4', freq: 392.0 }, { num: '2ª', nota: 'D4', freq: 293.66 }, { num: '3ª', nota: 'A3', freq: 220.0 }, { num: '4ª', nota: 'F4', freq: 349.23 }, { num: '5ª', nota: 'C4', freq: 261.63 } ];
+const datosContra = [ { num: '1ª', nota: 'A3', freq: 220.00 }, { num: '2ª', nota: 'E3', freq: 164.81 }, { num: '3ª', nota: 'B3', freq: 246.94 }, { num: '4ª', nota: 'G3', freq: 196.00 }, { num: '5ª', nota: 'D3', freq: 146.83 } ];
 const datosGuitarra = [ { num: '1ª', nota: 'E4', freq: 329.63 }, { num: '2ª', nota: 'B3', freq: 246.94 }, { num: '3ª', nota: 'G3', freq: 196.0 }, { num: '4ª', nota: 'D3', freq: 146.83 }, { num: '5ª', nota: 'A2', freq: 110.0 }, { num: '6ª', nota: 'E2', freq: 82.41 } ];
 const datosBandurria = [ { num: '1ª', nota: 'A5', freq: 880.0 }, { num: '2ª', nota: 'E5', freq: 659.25 }, { num: '3ª', nota: 'B4', freq: 493.88 }, { num: '4ª', nota: 'F#4', freq: 369.99 }, { num: '5ª', nota: 'C#4', freq: 277.18 }, { num: '6ª', nota: 'G#3', freq: 207.65 } ];
 const datosLaud = [ { num: '1ª', nota: 'A4', freq: 440.0 }, { num: '2ª', nota: 'E4', freq: 329.63 }, { num: '3ª', nota: 'B3', freq: 246.94 }, { num: '4ª', nota: 'F#3', freq: 185.0 }, { num: '5ª', nota: 'C#3', freq: 138.59 }, { num: '6ª', nota: 'G#2', freq: 103.83 } ];
@@ -54,23 +54,32 @@ const diccionarioAcordes = [
 
 const posturasAcordesVisuales = {
     timple: {
-        // --- MAYORES (Tabla BienMeSabe) ---
-        "C": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 1, traste: 3} ], // Do Mayor
-        "D": [ {cuerdaIndex: 2, traste: 2}, {cuerdaIndex: 3, traste: 2}, {cuerdaIndex: 4, traste: 2} ], // Re Mayor
-        "E": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 1, traste: 2}, {cuerdaIndex: 3, traste: 4}, {cuerdaIndex: 4, traste: 1} ], // Mi Mayor
-        "F": [ {cuerdaIndex: 0, traste: 3}, {cuerdaIndex: 2, traste: 1}, {cuerdaIndex: 4, traste: 2} ], // Fa Mayor
-        "G": [ {cuerdaIndex: 1, traste: 2}, {cuerdaIndex: 2, traste: 3}, {cuerdaIndex: 3, traste: 2} ], // Sol Mayor
-        "A": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 3, traste: 1}, {cuerdaIndex: 4, traste: 2} ], // La Mayor
-        "B": [ {cuerdaIndex: 0, traste: 1}, {cuerdaIndex: 1, traste: 2}, {cuerdaIndex: 2, traste: 2}, {cuerdaIndex: 3, traste: 3}, {cuerdaIndex: 4, traste: 4} ], // Si Mayor
+        // --- MAYORES ---
+        "C": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 1, traste: 3} ], 
+        "D": [ {cuerdaIndex: 2, traste: 2}, {cuerdaIndex: 3, traste: 2}, {cuerdaIndex: 4, traste: 2} ], 
+        "E": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 1, traste: 2}, {cuerdaIndex: 3, traste: 4}, {cuerdaIndex: 4, traste: 1} ], 
+        "F": [ {cuerdaIndex: 0, traste: 3}, {cuerdaIndex: 2, traste: 1}, {cuerdaIndex: 4, traste: 2} ], 
+        "G": [ {cuerdaIndex: 1, traste: 2}, {cuerdaIndex: 2, traste: 3}, {cuerdaIndex: 3, traste: 2} ], 
+        "A": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 3, traste: 1}, {cuerdaIndex: 4, traste: 2} ], 
+        "B": [ {cuerdaIndex: 0, traste: 1}, {cuerdaIndex: 1, traste: 2}, {cuerdaIndex: 2, traste: 2}, {cuerdaIndex: 3, traste: 3}, {cuerdaIndex: 4, traste: 4} ], 
         
-        // --- MENORES (Tabla BienMeSabe) ---
-        "Cm": [ {cuerdaIndex: 0, traste: 1}, {cuerdaIndex: 1, traste: 3}, {cuerdaIndex: 2, traste: 3} ], // Do menor
-        "Dm": [ {cuerdaIndex: 2, traste: 1}, {cuerdaIndex: 3, traste: 2}, {cuerdaIndex: 4, traste: 2} ], // Re menor
-        "Em": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 1, traste: 2}, {cuerdaIndex: 3, traste: 4} ], // Mi menor
-        "Fm": [ {cuerdaIndex: 0, traste: 3}, {cuerdaIndex: 1, traste: 3}, {cuerdaIndex: 2, traste: 1}, {cuerdaIndex: 4, traste: 1} ], // Fa menor
-        "Gm": [ {cuerdaIndex: 1, traste: 1}, {cuerdaIndex: 2, traste: 3}, {cuerdaIndex: 3, traste: 2} ], // Sol menor
-        "Am": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 4, traste: 2} ], // La menor
-        "Bm": [ {cuerdaIndex: 1, traste: 2}, {cuerdaIndex: 2, traste: 2}, {cuerdaIndex: 3, traste: 2}, {cuerdaIndex: 4, traste: 4} ] // Si menor
+        // --- MENORES ---
+        "Cm": [ {cuerdaIndex: 0, traste: 1}, {cuerdaIndex: 1, traste: 3}, {cuerdaIndex: 2, traste: 3} ], 
+        "Dm": [ {cuerdaIndex: 2, traste: 1}, {cuerdaIndex: 3, traste: 2}, {cuerdaIndex: 4, traste: 2} ], 
+        "Em": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 1, traste: 2}, {cuerdaIndex: 3, traste: 4} ], 
+        "Fm": [ {cuerdaIndex: 0, traste: 3}, {cuerdaIndex: 1, traste: 3}, {cuerdaIndex: 2, traste: 1}, {cuerdaIndex: 4, traste: 1} ], 
+        "Gm": [ {cuerdaIndex: 1, traste: 1}, {cuerdaIndex: 2, traste: 3}, {cuerdaIndex: 3, traste: 2} ], 
+        "Am": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 4, traste: 2} ], 
+        "Bm": [ {cuerdaIndex: 1, traste: 2}, {cuerdaIndex: 2, traste: 2}, {cuerdaIndex: 3, traste: 2}, {cuerdaIndex: 4, traste: 4} ],
+
+        // --- SÉPTIMAS (7) ---
+        "C7": [ {cuerdaIndex: 1, traste: 1} ], // Do7
+        "D7": [ {cuerdaIndex: 2, traste: 2}, {cuerdaIndex: 4, traste: 2} ], // Re7
+        "E7": [ {cuerdaIndex: 1, traste: 2}, {cuerdaIndex: 3, traste: 2}, {cuerdaIndex: 4, traste: 1} ], // Mi7
+        "F7": [ {cuerdaIndex: 0, traste: 1}, {cuerdaIndex: 2, traste: 1}, {cuerdaIndex: 4, traste: 2} ], // Fa7
+        "G7": [ {cuerdaIndex: 1, traste: 2}, {cuerdaIndex: 2, traste: 1} ], // Sol7
+        "A7": [ {cuerdaIndex: 3, traste: 1} ], // La7
+        "B7": [ {cuerdaIndex: 0, traste: 1}, {cuerdaIndex: 2, traste: 2}, {cuerdaIndex: 4, traste: 2} ] // Si7
     },
     guitarra: {
         // --- MAYORES ---
@@ -89,7 +98,16 @@ const posturasAcordesVisuales = {
         "Fm": [ {cuerdaIndex: 0, traste: 1}, {cuerdaIndex: 1, traste: 1}, {cuerdaIndex: 2, traste: 1}, {cuerdaIndex: 3, traste: 3}, {cuerdaIndex: 4, traste: 3}, {cuerdaIndex: 5, traste: 1} ], 
         "Gm": [ {cuerdaIndex: 0, traste: 3}, {cuerdaIndex: 1, traste: 3}, {cuerdaIndex: 2, traste: 3}, {cuerdaIndex: 3, traste: 5}, {cuerdaIndex: 4, traste: 5}, {cuerdaIndex: 5, traste: 3} ], 
         "Am": [ {cuerdaIndex: 1, traste: 1}, {cuerdaIndex: 2, traste: 2}, {cuerdaIndex: 3, traste: 2} ], 
-        "Bm": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 1, traste: 3}, {cuerdaIndex: 2, traste: 4}, {cuerdaIndex: 3, traste: 4}, {cuerdaIndex: 4, traste: 2} ]
+        "Bm": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 1, traste: 3}, {cuerdaIndex: 2, traste: 4}, {cuerdaIndex: 3, traste: 4}, {cuerdaIndex: 4, traste: 2} ],
+
+        // --- SÉPTIMAS (7) ---
+        "C7": [ {cuerdaIndex: 1, traste: 1}, {cuerdaIndex: 2, traste: 3}, {cuerdaIndex: 3, traste: 2}, {cuerdaIndex: 4, traste: 3} ],
+        "D7": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 1, traste: 1}, {cuerdaIndex: 2, traste: 2} ],
+        "E7": [ {cuerdaIndex: 2, traste: 1}, {cuerdaIndex: 4, traste: 2} ],
+        "F7": [ {cuerdaIndex: 0, traste: 1}, {cuerdaIndex: 1, traste: 1}, {cuerdaIndex: 2, traste: 2}, {cuerdaIndex: 3, traste: 1}, {cuerdaIndex: 4, traste: 3}, {cuerdaIndex: 5, traste: 1} ],
+        "G7": [ {cuerdaIndex: 0, traste: 1}, {cuerdaIndex: 4, traste: 2}, {cuerdaIndex: 5, traste: 3} ],
+        "A7": [ {cuerdaIndex: 1, traste: 2}, {cuerdaIndex: 3, traste: 2} ],
+        "B7": [ {cuerdaIndex: 0, traste: 2}, {cuerdaIndex: 2, traste: 2}, {cuerdaIndex: 3, traste: 1}, {cuerdaIndex: 4, traste: 2} ]
     },
     contra: {},
     bandurria: {},

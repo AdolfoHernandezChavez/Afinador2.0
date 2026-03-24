@@ -16,6 +16,9 @@ let notasGrabadas = [];
 let instrumentoActualData = [];
 let targetFrequency = 587.33; 
 
+let smoothedFrequency = 0; // Almacenará la frecuencia suavizada
+const SMOOTHING_FACTOR = 0.15; // Cuanto más bajo, más lenta y estable es la aguja (0.1 a 0.2 es ideal)
+
 const TEMPERAMENTOS = { estandar: 440.0, orquestal: 442.0, tradicional: 435.0 };
 let frecuenciaReferencia = TEMPERAMENTOS.estandar;
 
@@ -374,14 +377,30 @@ async function iniciarAudio() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // 1. Creamos el filtro
+        const filtroSordina = audioContext.createBiquadFilter();
+        filtroSordina.type = 'bandpass'; 
+        filtroSordina.frequency.value = 600; // Centrado en el rango musical útil
+        filtroSordina.Q.value = 1.0;         // Ancho de banda moderado
+
+        // 2. Configuramos el analizador como antes
         analyser = audioContext.createAnalyser();
         analyser.fftSize = 2048;
-        audioContext.createMediaStreamSource(stream).connect(analyser);
+
+        // 3. LA CADENA DE CONEXIÓN (IMPORTANTE):
+        // Micro -> Filtro -> Analizador
+        const source = audioContext.createMediaStreamSource(stream);
+        source.connect(filtroSordina);
+        filtroSordina.connect(analyser);
 
         isRunning = true;
         actualizarBotonMicro();
         buclePrincipal();
-    } catch (e) { alert('Error: No se detecta micrófono.'); }
+    } catch (e) { 
+        console.error(e);
+        alert('Error: No se detecta micrófono o el acceso fue denegado.'); 
+    }
 }
 
 function actualizarBotonMicro() {
@@ -415,8 +434,19 @@ function buclePrincipal() {
 }
 
 function actualizarAguja(freq) {
-    const diff = freq - targetFrequency;
+    // 1. Aplicamos el suavizado (EMA)
+    // Si es la primera vez que detectamos algo, igualamos directamente
+    if (smoothedFrequency === 0) {
+        smoothedFrequency = freq;
+    } else {
+        // La magia: 15% del valor nuevo + 85% del valor anterior
+        smoothedFrequency = (freq * SMOOTHING_FACTOR) + (smoothedFrequency * (1 - SMOOTHING_FACTOR));
+    }
+
+    // Usamos la frecuencia suavizada para el resto de cálculos
+    const diff = smoothedFrequency - targetFrequency;
     let angulo = diff * GAUGE_SCALE;
+    
     if (angulo > GAUGE_MAX_ANGLE) angulo = GAUGE_MAX_ANGLE;
     if (angulo < -GAUGE_MAX_ANGLE) angulo = -GAUGE_MAX_ANGLE;
 
@@ -425,9 +455,28 @@ function actualizarAguja(freq) {
     const status = document.getElementById('status');
     const noteName = document.getElementById('note-name');
 
+    // Aplicamos la rotación con el valor suavizado
     needle.style.transform = `translateX(-50%) rotate(${angulo}deg)`;
-    frequency.innerText = freq.toFixed(1) + ' Hz';
+    
+    // Mostramos la frecuencia real detectada (para que el usuario vea el número exacto)
+    // o puedes usar smoothedFrequency.toFixed(1) para que el número también sea estable
+    frequency.innerText = smoothedFrequency.toFixed(1) + ' Hz';
+    const cuerdaDetectada = encontrarCuerdaMasCercana(smoothedFrequency);
 
+    if (cuerdaDetectada) {
+        targetFrequency = cuerdaDetectada.freq;
+
+    // Actualizar UI automáticamente
+        const noteName = document.getElementById('note-name');
+        noteName.innerText = cuerdaDetectada.nota;
+
+    // Marcar botón visual (opcional pero PRO)
+        document.querySelectorAll('.string-btn').forEach(b => b.classList.remove('selected'));
+        const botones = document.querySelectorAll('.string-btn');
+        const index = instrumentoActualData.indexOf(cuerdaDetectada);
+    if (botones[index]) botones[index].classList.add('selected');
+    }
+    
     if (Math.abs(diff) < IN_TUNE_THRESHOLD_HZ) {
         needle.style.background = 'var(--canary-yellow)';
         status.innerText = '¡PERFECTO! 🇮🇨';
@@ -465,36 +514,60 @@ function getNoteAndOctave(freq) {
 function autoCorrelate(buf, sampleRate) {
     let SIZE = buf.length;
     let rms = 0;
-    for (let i = 0; i < SIZE; i++) { rms += buf[i] * buf[i]; }
-    rms = Math.sqrt(rms / SIZE);
-    if (rms < 0.008) return -1; 
 
-    let r1 = 0, r2 = SIZE - 1, thres = 0.1; 
+    // 1. Cálculo de la energía (RMS)
+    for (let i = 0; i < SIZE; i++) {
+        let val = buf[i];
+        rms += val * val;
+    }
+    rms = Math.sqrt(rms / SIZE);
+
+    // SUBIMOS EL UMBRAL: Si el sonido es muy débil (ruido de fondo), lo ignoramos.
+    // Antes tenías 0.008 o 0.01. Subirlo a 0.02 o 0.03 ayuda mucho.
+    if (rms < 0.025) return -1; 
+
+    // 2. Recorte de silencio en los extremos del buffer (Mejora la precisión)
+    let r1 = 0, r2 = SIZE - 1, thres = 0.2;
     for (let i = 0; i < SIZE / 2; i++) if (Math.abs(buf[i]) < thres) { r1 = i; break; }
     for (let i = 1; i < SIZE / 2; i++) if (Math.abs(buf[SIZE - i]) < thres) { r2 = SIZE - i; break; }
     buf = buf.slice(r1, r2);
     SIZE = buf.length;
 
+    // 3. Autocorrelación
     let c = new Array(SIZE).fill(0);
-    for (let i = 0; i < SIZE; i++)
-        for (let j = 0; j < SIZE - i; j++)
+    for (let i = 0; i < SIZE; i++) {
+        for (let j = 0; j < SIZE - i; j++) {
             c[i] = c[i] + buf[j] * buf[j + i];
+        }
+    }
 
-    let d = 0; while (c[d] > c[d + 1]) d++;
+    // 4. Encontrar el primer pico significativo
+    let d = 0; 
+    while (c[d] > c[d + 1]) d++; // Bajamos desde el origen (lag 0)
+    
     let maxval = -1, maxpos = -1;
     for (let i = d; i < SIZE; i++) {
-        if (c[i] > maxval) { maxval = c[i]; maxpos = i; }
+        if (c[i] > maxval) {
+            maxval = c[i];
+            maxpos = i;
+        }
     }
     
     let T0 = maxpos;
+
+    // --- NUEVA MEJORA: CONFIDENCE CHECK ---
+    // Si el valor del pico encontrado no es al menos el 90% de la energía total,
+    // probablemente sea ruido aleatorio y no una nota musical clara.
+    let confidence = maxval / c[0];
+    if (confidence < 0.9) return -1; 
+
+    // 5. Interpolación parabólica para máxima precisión
     let x1 = c[T0 - 1], x2 = c[T0], x3 = c[T0 + 1];
     let a = (x1 + x3 - 2 * x2) / 2;
     let b = (x3 - x1) / 2;
     if (a) T0 = T0 - b / (2 * a);
 
-    const detectedFreq = sampleRate / T0;
-    if (detectedFreq < 70 || detectedFreq > 1200) return -1;
-    return detectedFreq;
+    return sampleRate / T0;
 }
 
 // --- METRÓNOMO ---
@@ -947,9 +1020,36 @@ function generarNuevaMeta() {
         document.getElementById('nota-pantalla').innerHTML = `${notaObjetivoActual.nombre} <span class="nota-espanol">(${espanol}${notaObjetivoActual.octava})</span>`;
 
     } else if (modoJuegoSeleccionado === 'acordes') {
-        let acordesFiltrados = nivelJuegoActual === 'facil' ? diccionarioAcordes.filter(a => !a.nombre.includes('m')) : diccionarioAcordes;
+        let acordesFiltrados = diccionarioAcordes; // Por defecto (Difícil) coge todos
+        
+        if (nivelJuegoActual === 'facil') {
+            // Nivel Fácil: Excluimos los menores ('m') y las séptimas ('7')
+            acordesFiltrados = diccionarioAcordes.filter(a => !a.nombre.includes('m') && !a.nombre.includes('7'));
+        } else if (nivelJuegoActual === 'medio') {
+            // Nivel Medio: Excluimos solo los menores ('m'). Quedan Mayores y Séptimas.
+            acordesFiltrados = diccionarioAcordes.filter(a => !a.nombre.includes('m'));
+        }
+        // Si es 'dificil', se queda con diccionarioAcordes entero (Mayores, 7 y Menores)
+
         const acordeAleatorio = acordesFiltrados[Math.floor(Math.random() * acordesFiltrados.length)];
         notaObjetivoActual = { nombre: acordeAleatorio.nombre }; 
         document.getElementById('nota-pantalla').innerHTML = `<span style="font-size: 1.5em; color: var(--canary-yellow);">${notaObjetivoActual.nombre}</span>`;
     }
+}
+
+function encontrarCuerdaMasCercana(freq) {
+    if (!instrumentoActualData || instrumentoActualData.length === 0) return null;
+
+    let mejorCuerda = null;
+    let menorDiferencia = Infinity;
+
+    instrumentoActualData.forEach(cuerda => {
+        const diff = Math.abs(freq - cuerda.freq);
+        if (diff < menorDiferencia) {
+            menorDiferencia = diff;
+            mejorCuerda = cuerda;
+        }
+    });
+
+    return mejorCuerda;
 }
