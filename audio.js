@@ -1,5 +1,6 @@
-import { state } from '../state.js';
-import { actualizarAguja, analizarMelodia } from '../tuner.js';
+import { state } from './state.js';
+import { actualizarAguja } from './tuner.js';
+import { analizarMelodia } from './transcriptor.js';
 
 export async function iniciarAudio() {
     if (state.isRunning) return;

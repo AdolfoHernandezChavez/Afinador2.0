@@ -163,15 +163,10 @@ button:focus-visible {
 
 /* Afinador: selector de instrumentos */
 .toggle-container {
-  background: #111;
-  padding: 8px;
-  border-radius: 999px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 20px;
-  border: 1px solid #333;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columnas */
+    gap: 10px;
+    margin-bottom: 15px;
 }
 
 .toggle-btn {
