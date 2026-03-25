@@ -2,6 +2,7 @@ import { iniciarAudio } from './audio.js';
 import { toggleGrabacion } from './transcriptor.js';
 import { toggleMetronomo } from './metronomo.js';
 import { state, TEMPERAMENTOS } from './state.js';
+import { INSTRUMENTOS } from './datos.js';
 
 export function initUI() {
 
@@ -57,3 +58,25 @@ function cambiarInstrumento(inst) {
 
     state.instrumentoActualData = INSTRUMENTOS[inst];
 }
+
+// 🔥 CONTROL DE PESTAÑAS (MENÚ SUPERIOR)
+window.cambiarVista = function(vista) {
+    // 1. Lista de todas las vistas posibles en tu web
+    const todasLasVistas = ['afinador', 'metronomo', 'transcriptor', 'juego']; 
+    
+    // 2. Ocultamos todas las vistas y desactivamos todas las pestañas
+    todasLasVistas.forEach(v => {
+        const divVista = document.getElementById('vista-' + v);
+        if (divVista) divVista.classList.add('hidden');
+        
+        const tab = document.getElementById('tab-' + v);
+        if (tab) tab.classList.remove('active');
+    });
+
+    // 3. Mostramos solo la vista seleccionada y activamos su pestaña
+    const vistaSeleccionada = document.getElementById('vista-' + vista);
+    if (vistaSeleccionada) vistaSeleccionada.classList.remove('hidden');
+
+    const tabSeleccionada = document.getElementById('tab-' + vista);
+    if (tabSeleccionada) tabSeleccionada.classList.add('active');
+};
